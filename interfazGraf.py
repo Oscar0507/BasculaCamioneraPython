@@ -147,8 +147,6 @@ class Interfaz:
         self.Factores=[]
         self.Placas_pend=[]
 
-
-
     def cargar_parametros(self):
         try: 
             with open("parametros_bascula.json","r") as archivo:
@@ -163,7 +161,6 @@ class Interfaz:
         except(FileNotFoundError,json.JSONDecodeError):
             self.password.set(1234)
             messagebox.showerror("Error","No se pudo abrir archivo de parámetros")
-
 
     def crear_interfaz(self):   
         #Definición de label de hora y fecha
@@ -293,6 +290,7 @@ class Interfaz:
         self.boton_grabar=Button(self.frame_botones,text="Grabar", font=self.Fuente,activebackground="green",command=self.grabar_dato)
         self.boton_eliminar=Button(self.frame_botones,text="Eliminar", font=self.Fuente,activebackground="green", command=self.eliminar_registro)
         self.boton_imprimir=Button(self.frame_botones,text="Imprimir", font=self.Fuente,activebackground="green",command=self.Imprimir)
+        self.boton_imprimir.config(state="disabled")
         self.boton_cargar=Button(self.frame_botones,text="Cargar", font=self.Fuente,activebackground="green",command=self.cargar_registro)
         self.boton_nuevo=Button(self.frame_botones,text="Nuevo", font=self.Fuente,activebackground="green",command=self.reset_planilla)
         self.boton_config=Button(self.frame_botones,text="Configuración", font=self.Fuente,activebackground="green", command=self.configuraciones)
@@ -392,8 +390,8 @@ class Interfaz:
     def configuraciones(self):                          # Botón configuraciones
         self.solicitar_contraseña()
 
-    def eliminar_registro(self):
-                                # Botón Eliminar
+    def eliminar_registro(self):                        # Botón Eliminar
+                                
         match self.estatus:
             case 0: # 3 Eliminado en transito
                 self.Base_de_datos.actualizar_estado(self.registro,3)   
@@ -466,16 +464,7 @@ class Interfaz:
         self.text_observacion.delete('1.0','end')
         self.text_observacion.insert('1.0',observ)
         self.actualizar_registro(reg)
-
-        #print("El estado que lee es: ",estatus)
-        #match estatus:
-        #    case 0:
-        #        self.carga_formulario_EnTransito()
-        #        print("formulario En transito ",estatus)
-        #    case _:
-        #        self.carga_formulario_procesado()
-        #        print("formulario procesado ",estatus)
-                
+              
     def cargar_datos_registro(self,datos):
         reg=datos[0]
         fecha=datos[1]
@@ -699,7 +688,8 @@ class Interfaz:
         self.ComboProducto.configure(state="readonly")
         self.boton_AdquirirPeso.configure(state="normal")
         self.boton_calcular.configure(state="normal")
-        self.text_observacion.configure(state="normal")       
+        self.text_observacion.configure(state="normal")
+        self.boton_imprimir.config(state="disabled")       
 
     def carga_formulario_EnTransito(self):
         self.EntryPlaca.configure(state="readonly")
@@ -714,6 +704,7 @@ class Interfaz:
         self.boton_AdquirirPeso.configure(state="normal")
         self.boton_calcular.configure(state="normal")
         self.text_observacion.configure(state="normal")
+        self.boton_imprimir.config(state="disabled")
         
     def carga_formulario_procesado(self):
         self.EntryPlaca.configure(state="readonly")
@@ -728,6 +719,7 @@ class Interfaz:
         self.boton_AdquirirPeso.configure(state="disabled")
         self.boton_calcular.configure(state="disabled")
         self.text_observacion.configure(state="disabled")
+        self.boton_imprimir.config(state="normal")
 
     def primera_grab_regist(self):
         self.Cliente.set(self.ComboCliente.get())
@@ -796,7 +788,8 @@ class Interfaz:
                     self.PesoBruto.get(),self.PesoAgua.get(),self.PesoNeto.get(),self.Volumen.get(),self.Obra.get(),\
                     self.Ubicacion.get(),self.Observacion.get()):
                 self.eliminar_placa_list(self.placa.get())
-                self.reset_planilla()
+                #self.reset_planilla()
+                self.actualizar_registro(self.registro)
                 
     def eliminar_placa_list(self,placa):
         # Recorre los elementos del Listbox para encontrar el índice
@@ -855,6 +848,7 @@ class Interfaz:
                 self.etiqueta_estado_reg.config(text="Estado: Registro en transito")
                 print('registro en transito',registro)
                 print('estado',self.estatus)
+
             if self.estatus >= 1:
                 self.carga_formulario_procesado()
                 match self.estatus:
