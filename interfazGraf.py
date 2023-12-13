@@ -310,7 +310,7 @@ class Interfaz:
         if placa_select_ind:
             placa_select=self.listBoxPlacas.get(placa_select_ind)
             datos_registro=[]
-            datos_registro=self.Base_de_datos.abrir_reg_conplaca(placa_select)
+            datos_registro=self.Base_de_datos.abrir_reg_conplacaEntransito(placa_select)
             print(datos_registro)
             self.borar_datos_calculo()
             self.cargar_datos_registro(datos_registro)
@@ -689,7 +689,8 @@ class Interfaz:
         self.boton_AdquirirPeso.configure(state="normal")
         self.boton_calcular.configure(state="normal")
         self.text_observacion.configure(state="normal")
-        self.boton_imprimir.config(state="disabled")       
+        self.boton_imprimir.config(state="disabled")
+        self.boton_grabar.config(state="normal")       
 
     def carga_formulario_EnTransito(self):
         self.EntryPlaca.configure(state="readonly")
@@ -705,6 +706,7 @@ class Interfaz:
         self.boton_calcular.configure(state="normal")
         self.text_observacion.configure(state="normal")
         self.boton_imprimir.config(state="disabled")
+        self.boton_grabar.config(state="normal")
         
     def carga_formulario_procesado(self):
         self.EntryPlaca.configure(state="readonly")
@@ -720,6 +722,7 @@ class Interfaz:
         self.boton_calcular.configure(state="disabled")
         self.text_observacion.configure(state="disabled")
         self.boton_imprimir.config(state="normal")
+        self.boton_grabar.config(state="disabled")
 
     def primera_grab_regist(self):
         self.Cliente.set(self.ComboCliente.get())
@@ -742,6 +745,11 @@ class Interfaz:
             self.placa.set(self.EntryPlaca.get())
         else:
             messagebox.showerror("Error", "Debes ingresar un placa válida.")
+            return
+        
+        if self.Base_de_datos.verificar_placa_enTransito(self.placa.get()):
+            messagebox.showerror("Error","Esta placa ya se encuentra en transito,\
+                                  verificar placa entrante")
             return
         
         if not self.Cliente.get():
@@ -788,8 +796,9 @@ class Interfaz:
                     self.PesoBruto.get(),self.PesoAgua.get(),self.PesoNeto.get(),self.Volumen.get(),self.Obra.get(),\
                     self.Ubicacion.get(),self.Observacion.get()):
                 self.eliminar_placa_list(self.placa.get())
-                #self.reset_planilla()
+                self.estatus=estado
                 self.actualizar_registro(self.registro)
+                #self.reset_planilla()
                 
     def eliminar_placa_list(self,placa):
         # Recorre los elementos del Listbox para encontrar el índice
@@ -843,7 +852,7 @@ class Interfaz:
 
         # Elección de carga de un formulario nuevo, existente o procesado
         if self.Base_de_datos.verificar_exist_regist(registro):
-            if self.estatus == 0:
+            if self.estatus == 0:       #En Transito
                 self.carga_formulario_EnTransito()
                 self.etiqueta_estado_reg.config(text="Estado: Registro en transito")
                 print('registro en transito',registro)
@@ -852,15 +861,15 @@ class Interfaz:
             if self.estatus >= 1:
                 self.carga_formulario_procesado()
                 match self.estatus:
-                    case 1:
+                    case 1:     #Grabado
                         self.etiqueta_estado_reg.config(text="Estado: Procesado")
-                    case 2:
+                    case 2:     #Grabado e impreso
                         self.etiqueta_estado_reg.config(text="Estado: Procesado e impreso")
-                    case 3:
+                    case 3:     #Eliminado en transito
                         self.etiqueta_estado_reg.config(text="Estado: Eliminado en transito")
-                    case 4:
+                    case 4:     #Eliminado grabado
                         self.etiqueta_estado_reg.config(text="Estado: Eliminado procesado")
-                    case 5:
+                    case 5:     #Eliminado procesado e impreso
                         self.etiqueta_estado_reg.config(text="Estado: Eliminado procesado e impreso")
 
                 print('registro procesado',registro)

@@ -10,14 +10,23 @@ class BaseDeDatos:
         self.cursor.execute("SELECT placa FROM registros WHERE estado = 0") # Placas en transito
         return self.cursor.fetchall()
     
-    def abrir_reg_conplaca(self,placa):
-        self.cursor.execute("SELECT * FROM registros WHERE placa=?",(placa,))
+    def verificar_placa_enTransito(self, placa):
+        self.cursor.execute("SELECT * FROM registros WHERE estado = 0 and placa = ?",(placa,)) # Placas en transito
+        resultado= self.cursor.fetchone()
+        if resultado is not None:
+            return True
+        else:
+            return False
+    
+    def abrir_reg_conplacaEntransito(self,placa):
+        self.cursor.execute("SELECT * FROM registros WHERE estado = 0 and placa = ?",(placa,))
         #print(self.cursor.fetchone())
         return self.cursor.fetchone()
-
+        
     def verificar_exist_regist(self,registro):
         self.cursor.execute("SELECT * FROM registros WHERE registro = ?", (registro,))
         resultado=self.cursor.fetchone()
+        print(resultado)
         if resultado is not None:
             return True
         else:
