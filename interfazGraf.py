@@ -26,12 +26,9 @@ class Interfaz:
         self.inicializacion()
         self.cargar_parametros()
         self.crear_interfaz()
+        self.actualizar_registro(self.registro)
+        self.establecerConn_Serial()
         
-        try:
-            self.IntSerial=InterfazSerial(9600,'COM3')      # Interfaz Serial
-        except SerialException as e:
-            messagebox.showerror("Error", "No se logró abrir el puerto serial.")
-
     def Imprimir(self):
         impresora_def=win32print.GetDefaultPrinter()    #Obtener impresora predeterminada
         h_impresora=win32print.OpenPrinter(impresora_def)   #Crear un objeto de impresión
@@ -95,6 +92,7 @@ class Interfaz:
         self.fecha=time.strftime("%Y-%m-%d")
         self.hora=time.strftime("%H:%M:%S")
 
+
         #Verificación de Contraseña
         self.password=tk.IntVar()
 
@@ -106,6 +104,16 @@ class Interfaz:
         self.listPuertos=["COM1","COM2","COM3","COM4","COM5","COM6","COM7"]
         self.listBaudios=["2400","9600","19200","115200"]
         self.listProtocolos=["Protocolo1","Protocolo2","Protocolo3"]
+
+        self.tablas=["Clientes","Productos","Obras","Ubicaciones"]
+        self.tabla=tk.StringVar()
+        self.label_parametro1=tk.StringVar()
+        self.label_parametro2=tk.StringVar()
+        self.label_parametro3=tk.StringVar()
+
+        self.parametro1=tk.StringVar()
+        self.parametro2=tk.StringVar()
+        self.parametro3=tk.StringVar()
 
         self.lectura_serie=[]
 
@@ -129,7 +137,8 @@ class Interfaz:
         self.Obra=tk.StringVar()
         self.Ubicacion=tk.StringVar()
         self.Observacion=tk.StringVar()
-        self.registro = tk.IntVar(value=0)
+        #self.registro = tk.IntVar(value=0)
+        self.registro =0
         self.Factor_Conv= tk.DoubleVar(value=0.0)
         self.Humedad=tk.DoubleVar(value=0.0)
         self.PesoEntrada=tk.IntVar(value=0)
@@ -322,6 +331,17 @@ class Interfaz:
         self.cargar_datos_registro_consulta(valores)
 
     # Eventos de botones:
+    def establecerConn_Serial(self):
+        ventana_activa=self.ventana.focus_get()
+        #self.ventana_activa.grab_set()
+        try:
+            self.IntSerial=InterfazSerial(self.Baudios.get(),self.Puerto.get())      # Interfaz Serial
+        except SerialException as e:
+            messagebox.showerror("Error", "No se logró abrir el puerto serial.")
+        else:
+            messagebox.showinfo("Info","Conexión Establecida")
+        #self.ventana_activa.grab_release()   #Libera el foco
+
     def calcular_volumen(self):                         # Botón Calcular
         if self.Base_de_datos.verificar_exist_regist(self.registro):
             try:
@@ -588,31 +608,46 @@ class Interfaz:
         LableProtocol.grid(row=2,column=0)
         ComboProtocol=Combobox(LableFrameComm,values=self.listProtocolos,textvariable=self.Protocolo) #(row,column) (2,1)
         ComboProtocol.grid(row=2,column=1)
+        ButtonTestComm=Button(LableFrameComm,text="Test Comm",activebackground="green",command=self.establecerConn_Serial)
+        ButtonTestComm.grid(row=3,column=0,columnspan=2)
 
         # Row=2, Column 1:
         # Frame de ingresos nuevos a tablas 
         LableFrameIngresos=LabelFrame(ventana,text="Ingresos de tablas",padx=10,pady=10) #Frame
         LableFrameIngresos.grid(row=2,column=1,padx=10,pady=10)
 
-        LableIngresoCliente=Label(LableFrameIngresos,text="Ingresar nuevo Cliente:") #(row,column) (0,0)
-        LableIngresoCliente.grid(row=0,column=0,padx=10, pady=2)
-        ButtonIngresoCliente=Button(LableFrameIngresos,text="Ingresar",activebackground="green") #(row,column) (0,1)
-        ButtonIngresoCliente.grid(row=0,column=1,padx=10, pady=2)
+        LableSelectTablaIngresos=Label(LableFrameIngresos,text="Seleccionar Tabla:") #(row,column) (0,0)
+        LableSelectTablaIngresos.grid(row=0,column=0,padx=10, pady=2)
+        ComboSelectTabla=Combobox(LableFrameIngresos,values=self.tablas,textvariable=self.tabla) #(row,column) (0,1)
+        ComboSelectTabla.grid(row=0,column=1,padx=10, pady=2)
 
-        LableIngresoProductos=Label(LableFrameIngresos,text="Ingresar nuevo Producto:") #(row,column) (1,0)
-        LableIngresoProductos.grid(row=1,column=0,padx=10, pady=2)
-        ButtonIngresoProductos=Button(LableFrameIngresos,text="Ingresar",activebackground="green") #(row,column) (1,1)
-        ButtonIngresoProductos.grid(row=1,column=1,padx=10, pady=2)
+        ButtonInsertarDato=Button(LableFrameIngresos,text="Ingresar",activebackground="green",command=self.IngresarDataTablas) #(row,column) (1,1)
+        ButtonInsertarDato.grid(row=1,column=0,columnspan=2,padx=10, pady=2)
 
-        LableIngresoObras=Label(LableFrameIngresos,text="Ingresar nuevo Obra:") #(row,column) (1,0)
-        LableIngresoObras.grid(row=2,column=0,padx=10, pady=2)
-        ButtonIngresoObras=Button(LableFrameIngresos,text="Ingresar",activebackground="green") #(row,column) (1,1)
-        ButtonIngresoObras.grid(row=2,column=1,padx=10, pady=2)
+        self.EntryLabelIngresoParam1=Entry(LableFrameIngresos,textvariable=self.label_parametro1,state="disabled",relief="flat") #(row,column) (1,0)
+        self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
+        self.EntryParam1=Entry(LableFrameIngresos,textvariable=self.parametro1)
+        self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
+        self.EntryLabelIngresoParam1.grid_forget()
+        self.EntryParam1.grid_forget()
 
-        LableIngresoUbicaciones=Label(LableFrameIngresos,text="Ingresar nuevo Obra:") #(row,column) (1,0)
-        LableIngresoUbicaciones.grid(row=3,column=0,padx=10, pady=2)
-        ButtonIngresoUbicaciones=Button(LableFrameIngresos,text="Ingresar",activebackground="green") #(row,column) (1,1)
-        ButtonIngresoUbicaciones.grid(row=3,column=1,padx=10, pady=2)
+        self.EntryLableIngresoParam2=Entry(LableFrameIngresos,textvariable=self.label_parametro2,state="disabled",relief="flat")
+        self.EntryLableIngresoParam2.grid(row=3,column=0,padx=10, pady=2)
+        self.EntryParam2=Entry(LableFrameIngresos,textvariable=self.parametro2)
+        self.EntryParam2.grid(row=3,column=1,padx=10,pady=10)
+        self.EntryLableIngresoParam2.grid_forget()
+        self.EntryParam2.grid_forget()
+
+        self.EntryLableIngresoParam3=Entry(LableFrameIngresos,textvariable=self.label_parametro3,state="disabled",relief="flat")
+        self.EntryLableIngresoParam3.grid(row=4,column=0,padx=10, pady=2)
+        self.EntryParam3=Entry(LableFrameIngresos,textvariable=self.parametro3)
+        self.EntryParam3.grid(row=4,column=1,padx=10,pady=10)
+        self.EntryLableIngresoParam3.grid_forget()
+        self.EntryParam3.grid_forget()
+
+        self.ButtonAceptarIngreso=Button(LableFrameIngresos,text="Aceptar Ingreso",activebackground="green",command=self.EscribirDatosEnBaseDeDatos)
+        self.ButtonAceptarIngreso.grid(row=5,column=0,columnspan=2)
+        self.ButtonAceptarIngreso.grid_forget()
 
         # Row 3, Column 0:
         # Frame de ingresos nuevos a tablas 
@@ -636,6 +671,113 @@ class Interfaz:
         ButtonAceptarCambios=Button(ventana,text="Aceptar cambios de parámetros",padx=2,pady=2,activebackground="green",command=self.grabar_parametros)
         ButtonAceptarCambios.grid(row=4,columnspan=2)
 
+    def IngresarDataTablas(self):
+        if self.tabla.get() is not None:
+            tabla_select=self.tabla.get()
+            match tabla_select:
+                case "Clientes":
+                    self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
+                    self.label_parametro1.set("Nombre del Cliente:")
+                    self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
+
+                    self.ButtonAceptarIngreso.grid(row=5,column=0,columnspan=2)
+
+                    self.EntryLableIngresoParam2.grid_forget()
+                    self.EntryParam2.grid_forget()
+                    self.EntryLableIngresoParam3.grid_forget()
+                    self.EntryParam3.grid_forget()
+                    
+                case "Productos":
+                    self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
+                    self.label_parametro1.set("Nombre del Producto:")
+                    self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
+
+                    self.EntryLableIngresoParam2.grid(row=3,column=0,padx=10, pady=2)
+                    self.label_parametro2.set("Factor de Conversión:")
+                    self.EntryParam2.grid(row=3,column=1,padx=10,pady=10)
+
+                    self.EntryLableIngresoParam3.grid(row=4,column=0,padx=10, pady=2)
+                    self.label_parametro3.set("Precio por m3:")
+                    self.EntryParam3.grid(row=4,column=1,padx=10,pady=10)
+
+                    self.ButtonAceptarIngreso.grid(row=5,column=0,columnspan=2)
+
+
+                case "Obras":
+                    self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
+                    self.label_parametro1.set("Nombre de Obra:")
+                    self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
+
+                    self.EntryLableIngresoParam2.grid(row=3,column=0,padx=10, pady=2)
+                    self.label_parametro2.set("Encargado de Obra:")
+                    self.EntryParam2.grid(row=3,column=1,padx=10,pady=10)
+
+                    self.ButtonAceptarIngreso.grid(row=5,column=0,columnspan=2)
+
+                    self.EntryLableIngresoParam3.grid_forget()
+                    self.EntryParam3.grid_forget()
+
+
+                case "Ubicaciones":
+                    self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
+                    self.label_parametro1.set("Nombre de Ubicación:")
+                    self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
+
+                    self.EntryLableIngresoParam2.grid(row=3,column=0,padx=10, pady=2)
+                    self.label_parametro2.set("Región de ubicación:")
+                    self.EntryParam2.grid(row=3,column=1,padx=10,pady=10)
+
+                    self.ButtonAceptarIngreso.grid(row=5,column=0,columnspan=2)
+
+                    self.EntryLableIngresoParam3.grid_forget()
+                    self.EntryParam3.grid_forget()
+
+    def EscribirDatosEnBaseDeDatos(self):
+        tabla=self.tabla.get()
+        match tabla:
+            case "Clientes":
+                cliente=self.parametro1.get()
+                if cliente is not None:
+                    self.Base_de_datos.insertarCliente(cliente)
+                else:
+                    messagebox.showerror("Error","Debe insertar un cliente")
+            case "Productos":
+                producto=self.parametro1.get()
+                factor=self.parametro2.get()
+                precio=self.parametro3.get()
+                if producto is None:
+                    messagebox.showerror("Error","Debe insertar un cliente")
+                else:
+                    if self.No_es_float(factor):
+                        messagebox.showerror("Error","El Factor de conversión, no es un flotante")
+                    else:
+                        if self.No_es_float(precio):
+                            messagebox.showerror("Error","El Precio, no es un flotante")
+                        else:
+                            self.Base_de_datos.insertarProducto(producto,factor,precio)
+                    
+            case "Obras":
+                obra=self.parametro1.get()
+                encargado=self.parametro2.get()
+                if obra is None:
+                    messagebox.showerror("Error","Debe insertar una obra")
+                else:
+                    if encargado is None:
+                        messagebox.showerror("Error","Debe insertar un encargado")
+                    else:
+                        self.Base_de_datos.insertarObra(obra,encargado)
+
+            case "Ubicaciones":
+                ubicacion=self.parametro1.get()
+                region=self.parametro2.get()
+                if ubicacion is None:
+                    messagebox.showerror("Error","Debe insertar una ubicación")
+                else:
+                    if region is None:
+                        messagebox.showerror("Error","Debe insertar una región")
+                    else:
+                        self.Base_de_datos.insertarUbicacion(ubicacion,region) 
+
     def grabar_parametros(self):
         try:
             datos_a_guardar={"Puerto":self.Puerto.get(),"Baudios":self.Baudios.get(),\
@@ -644,10 +786,10 @@ class Interfaz:
             with open("parametros_bascula.json","w") as archivo:
                 json.dump(datos_a_guardar,archivo)
             messagebox.showinfo("Aviso","Parámetros Cambiados con Éxito")
+            self.actualizar_registro(self.registro)
             ventana_activa=self.ventana.focus_get()
             if isinstance(ventana_activa,tk.Toplevel):
-                ventana_activa.destroy()
-          
+                ventana_activa.destroy()         
         except:
             messagebox.showerror("Error","Valor de password incorrecto\n Debe ser un numero entero")
    
@@ -677,9 +819,15 @@ class Interfaz:
                 self.tablaConsulta.insert("","end",values=valor)
 
     def carga_formulario_nuevo(self):
+
+        if self.HabilitarIngresoManual.get():
+            self.entry_pesoEnt.configure(state="normal")
+        else:
+            self.entry_pesoEnt.configure(state="readonly")
+
         self.EntryPlaca.configure(state="normal")
         self.Entry_Humedad.configure(state="normal")
-        self.entry_pesoEnt.configure(state="normal")
+         
         self.entry_pesoSal.configure(state="readonly")  #Deshabilitando el Entry de Peso de Salida
         self.ComboObra.configure(state="normal")
         self.ComboUbicacion.configure(state="normal")
@@ -693,10 +841,15 @@ class Interfaz:
         self.boton_grabar.config(state="normal")       
 
     def carga_formulario_EnTransito(self):
+        if self.HabilitarIngresoManual.get():
+            self.entry_pesoSal.configure(state="normal")
+        else:
+            self.entry_pesoSal.configure(state="readonly")
+
         self.EntryPlaca.configure(state="readonly")
         self.Entry_Humedad.configure(state="normal")
         self.entry_pesoEnt.configure(state="readonly")  #Deshabilitando el Entry de Peso de Entrada
-        self.entry_pesoSal.configure(state="normal")
+
         self.ComboObra.configure(state="normal")
         self.ComboUbicacion.configure(state="normal")
 
@@ -901,3 +1054,10 @@ class Interfaz:
             return True
         else:
             return False
+        
+    def No_es_float(self,cadena):
+        try:
+            float_value = float(cadena)
+            return False
+        except ValueError:
+            return True

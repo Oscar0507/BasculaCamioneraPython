@@ -129,6 +129,39 @@ class BaseDeDatos:
         except sqlite3.Error as e:
             messagebox.showinfo("Fallo", f"Error de acatualización: {str(e)}")
             self.conn.rollback()
-            
+
+    def insertarCliente(self,cliente):
+        try:
+            self.cursor.execute("INSERT INTO Clientes(cliente) VALUES (?)",(cliente,))
+            self.conn.commit()
+            messagebox.showinfo("Éxito", "Registro almacenado con éxito.")
+        except sqlite3.Error as e:
+            messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
+            self.conn.rollback()
+
+    def insertarProducto(self,producto,factor,precio):
+        try:
+            self.cursor.execute("INSERT INTO Productos(producto,FactorConv,Precio_m3) VALUES (?,?,?)",(producto,factor,precio))
+            self.conn.commit()
+            messagebox.showinfo("Éxito", "Registro almacenado con éxito.")
+        except sqlite3.Error as e:
+            messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
+            self.conn.rollback()
+    def insertarObra(self,obra,encargado):
+        try:
+            self.cursor.execute("INSERT INTO Obras(Obra,Encargado) VALUES (?,?)",(obra,encargado))
+            self.conn.commit()
+            messagebox.showinfo("Éxito", "Registro almacenado con éxito.")
+        except sqlite3.Error as e:
+            messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
+            self.conn.rollback()
+    def insertarUbicacion(self,ubicacion,region):
+        try:
+            self.cursor.execute("INSERT INTO Ubicaciones(Ubicacion,Region) VALUES (?,?)",(ubicacion,region))
+            self.conn.commit()
+            messagebox.showinfo("Éxito", "Registro almacenado con éxito.")
+        except sqlite3.Error as e:
+            messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
+            self.conn.rollback()
 
             
