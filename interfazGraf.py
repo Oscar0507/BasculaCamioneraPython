@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from tkinter.ttk import Combobox
-from tkinter import simpledialog,messagebox
+from tkinter import simpledialog,messagebox,filedialog
 from tkinter.simpledialog import askstring
 import re
 import json
@@ -14,6 +14,8 @@ import time
 
 import win32print
 import win32ui
+
+import csv
 
 
 class Interfaz:
@@ -104,6 +106,9 @@ class Interfaz:
         self.listPuertos=["COM1","COM2","COM3","COM4","COM5","COM6","COM7"]
         self.listBaudios=["2400","9600","19200","115200"]
         self.listProtocolos=["Protocolo1","Protocolo2","Protocolo3"]
+
+        self.FechaIniConsult=tk.StringVar(value="2023-01-01")
+        self.FechaFinConsult=tk.StringVar(value="2023-12-31")
 
         self.tablas=["Clientes","Productos","Obras","Ubicaciones"]
         self.tabla=tk.StringVar()
@@ -555,8 +560,10 @@ class Interfaz:
         labelValorConsulta.grid(row=1,column=2,padx=10,pady=10,sticky="n")       
         entryParamSelec=Entry(ventana,textvariable=self.ValorConsulta,state="normal")
         entryParamSelec.grid(row=1,column=3,padx=10,pady=10,sticky="n")
+        label_info_formatFecha=Label(ventana,text="El formato de fecha debe ser AAAA-MM-DD",font=("Calibri", 8))
+        label_info_formatFecha.grid(row=2,column=3,padx=10,pady=3)
         ButtonConsultar=Button(ventana,text="Consultar",command=self.consultar)
-        ButtonConsultar.grid(row=2,column=0,padx=10,pady=10,sticky="n")
+        ButtonConsultar.grid(row=3,column=0,padx=10,pady=10,sticky="n")
         self.tablaConsulta=ttk.Treeview(ventana,columns=('Fecha','Registro','Placa','Cliente','Producto','Volum'))
         self.tablaConsulta['show']='headings'
         self.tablaConsulta.heading("#1",text="Fecha")
@@ -565,7 +572,7 @@ class Interfaz:
         self.tablaConsulta.heading("#4",text="Cliente")
         self.tablaConsulta.heading("#5",text="Producto")
         self.tablaConsulta.heading("#6",text="Volumen")
-        self.tablaConsulta.grid(row=3,column=0,columnspan=5,padx=10,pady=10)
+        self.tablaConsulta.grid(row=4,column=0,columnspan=5,padx=10,pady=10)
         self.tablaConsulta.bind('<ButtonRelease-1>',self.on_click_tabla)
 
     def solicitar_contraseña(self):
@@ -670,8 +677,13 @@ class Interfaz:
         LableFrameObtenerConsulta=LabelFrame(ventana,text="Obtener consulta Registros (*.csv)",padx=10,pady=10) #Frame
         LableFrameObtenerConsulta.grid(row=3,column=1,padx=10,pady=10)
 
-        ButtonObtenerConsulta=Button(LableFrameObtenerConsulta,text="Obtener",activebackground="green") #(row,column) (0,1)
-        ButtonObtenerConsulta.grid(row=0,column=0,padx=10, pady=2)
+        EntryFechaInitConsulta=Entry(LableFrameObtenerConsulta,textvariable=self.FechaIniConsult)
+        EntryFechaInitConsulta.grid(row=0,column=0,padx=5,pady=5)
+        EntryFechaFinConsulta=Entry(LableFrameObtenerConsulta,textvariable=self.FechaFinConsult)
+        EntryFechaFinConsulta.grid(row=0,column=1,padx=5,pady=5)
+
+        ButtonObtenerConsulta=Button(LableFrameObtenerConsulta,text="Obtener",activebackground="green",command=self.consulta_total_csv) #(row,column) (0,1)
+        ButtonObtenerConsulta.grid(row=1,column=0,columnspan=2,padx=10, pady=2)
 
         #Row 4, Column 0: Botón de acepatr modificaciones
         ButtonAceptarCambios=Button(ventana,text="Aceptar cambios de parámetros",padx=2,pady=2,activebackground="green",command=self.grabar_parametros)
@@ -682,6 +694,7 @@ class Interfaz:
             tabla_select=self.tabla.get()
             match tabla_select:
                 case "Clientes":
+                    self.parametro1.set("")
                     self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
                     self.label_parametro1.set("Nombre del Cliente:")
                     self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
@@ -694,14 +707,16 @@ class Interfaz:
                     self.EntryParam3.grid_forget()
                     
                 case "Productos":
+                    self.parametro1.set("")
+                    self.parametro2.set("")
+                    self.parametro3.set("")
+
                     self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
                     self.label_parametro1.set("Nombre del Producto:")
-                    self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
-
+                    self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)                   
                     self.EntryLableIngresoParam2.grid(row=3,column=0,padx=10, pady=2)
                     self.label_parametro2.set("Factor de Conversión:")
                     self.EntryParam2.grid(row=3,column=1,padx=10,pady=10)
-
                     self.EntryLableIngresoParam3.grid(row=4,column=0,padx=10, pady=2)
                     self.label_parametro3.set("Precio por m3:")
                     self.EntryParam3.grid(row=4,column=1,padx=10,pady=10)
@@ -710,6 +725,9 @@ class Interfaz:
 
 
                 case "Obras":
+                    self.parametro1.set("")
+                    self.parametro2.set("")
+                    self.parametro3.set("")
                     self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
                     self.label_parametro1.set("Nombre de Obra:")
                     self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
@@ -725,6 +743,9 @@ class Interfaz:
 
 
                 case "Ubicaciones":
+                    self.parametro1.set("")
+                    self.parametro2.set("")
+
                     self.EntryLabelIngresoParam1.grid(row=2,column=0,padx=10, pady=2)
                     self.label_parametro1.set("Nombre de Ubicación:")
                     self.EntryParam1.grid(row=2,column=1,padx=10,pady=10)
@@ -743,15 +764,17 @@ class Interfaz:
         match tabla:
             case "Clientes":
                 cliente=self.parametro1.get()
-                if cliente is not None:
-                    self.Base_de_datos.insertarCliente(cliente)
-                else:
+
+                if cliente =="":
                     messagebox.showerror("Error","Debe insertar un cliente")
+                else:
+                    self.Base_de_datos.insertarCliente(cliente)
+
             case "Productos":
                 producto=self.parametro1.get()
                 factor=self.parametro2.get()
                 precio=self.parametro3.get()
-                if producto is None:
+                if producto =="":
                     messagebox.showerror("Error","Debe insertar un cliente")
                 else:
                     if self.No_es_float(factor):
@@ -765,10 +788,10 @@ class Interfaz:
             case "Obras":
                 obra=self.parametro1.get()
                 encargado=self.parametro2.get()
-                if obra is None:
+                if obra =="":
                     messagebox.showerror("Error","Debe insertar una obra")
                 else:
-                    if encargado is None:
+                    if encargado =="":
                         messagebox.showerror("Error","Debe insertar un encargado")
                     else:
                         self.Base_de_datos.insertarObra(obra,encargado)
@@ -776,10 +799,10 @@ class Interfaz:
             case "Ubicaciones":
                 ubicacion=self.parametro1.get()
                 region=self.parametro2.get()
-                if ubicacion is None:
+                if ubicacion =="":
                     messagebox.showerror("Error","Debe insertar una ubicación")
                 else:
-                    if region is None:
+                    if region =="":
                         messagebox.showerror("Error","Debe insertar una región")
                     else:
                         self.Base_de_datos.insertarUbicacion(ubicacion,region) 
@@ -1067,3 +1090,33 @@ class Interfaz:
             return False
         except ValueError:
             return True
+        
+    def consulta_total_csv(self):
+        fechaInit=self.FechaIniConsult.get()
+        fechaFin=self.FechaFinConsult.get()
+        datos=self.Base_de_datos.consulta_totalRegistros(fechaInit,fechaFin)
+        self.exportar_csv(datos)
+
+    def exportar_csv(self,datos):
+        # Solicitar al usuario que elija la ubicación del archivo y el nombre
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("Archivos CSV", "*.csv")])
+
+        # Verificar si el usuario ha proporcionado un nombre de archivo
+        if file_path:
+            try:
+                # Abrir el archivo CSV para escritura
+                with open(file_path, 'w', newline='') as file:
+                    # Crear un objeto escritor CSV
+                    writer = csv.writer(file)
+
+                    # Escribir los datos en el archivo CSV
+                    writer.writerows(datos)
+
+                    # Mostrar un mensaje de éxito
+                    messagebox.showinfo("Éxito", "Datos exportados correctamente a {}".format(file_path))
+            except Exception as e:
+                # Mostrar un mensaje de error si hay algún problema
+                messagebox.showerror("Error", f"Error al exportar datos: {str(e)}")
+        else:
+            # Mostrar un mensaje si el usuario cancela la selección del archivo
+            messagebox.showinfo("Cancelado", "Exportación cancelada por el usuario")

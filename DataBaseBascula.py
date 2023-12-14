@@ -166,4 +166,15 @@ class BaseDeDatos:
             messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
             self.conn.rollback()
 
-            
+    def consulta_totalRegistros(self,fecha_ini,fecha_fin):
+        try:
+            self.cursor.execute("SELECT * FROM Registros WHERE fecha BETWEEN ? AND ?",(fecha_ini,fecha_fin))
+            resultados=self.cursor.fetchall()
+            # Obtener los nombres de las columnas
+            nombres_columnas = [descripcion[0] for descripcion in self.cursor.description]
+            # Agregar encabezados al principio de la lista de datos
+            resultados.insert(0, nombres_columnas)
+        except sqlite3.Error as e:
+            messagebox.showinfo("Fallo", f"Error en la consulta: {str(e)}")
+        else:
+            return resultados        
