@@ -332,15 +332,12 @@ class Interfaz:
 
     # Eventos de botones:
     def establecerConn_Serial(self):
-        ventana_activa=self.ventana.focus_get()
-        #self.ventana_activa.grab_set()
         try:
-            self.IntSerial=InterfazSerial(self.Baudios.get(),self.Puerto.get())      # Interfaz Serial
+            self.IntSerial=InterfazSerial(self.Baudios.get(),self.Puerto.get())      # Interfaz Serial           
         except SerialException as e:
-            messagebox.showerror("Error", "No se logró abrir el puerto serial.")
+            messagebox.showerror("Error", f"No se logró abrir el puerto serial.{e}")
         else:
             messagebox.showinfo("Info","Conexión Establecida")
-        #self.ventana_activa.grab_release()   #Libera el foco
 
     def calcular_volumen(self):                         # Botón Calcular
         if self.Base_de_datos.verificar_exist_regist(self.registro):
@@ -579,10 +576,19 @@ class Interfaz:
             messagebox.showerror("Error","Contraseña incorrecta")
     
     def abrir_ventana_configuraciones(self):
-        configuracionVentana=tk.Toplevel()
-        configuracionVentana.title("Configuraciones")
-        self.configurarVentanaConfiguraciones(configuracionVentana)
-
+        self.configuracionVentana=tk.Toplevel()
+        self.configuracionVentana.title("Configuraciones")
+        self.boton_config.config(state="disabled")
+        self.configurarVentanaConfiguraciones(self.configuracionVentana)
+        # Cuando se cierre la ventana, habilitar de nuevo el botón configuración
+       
+        self.configuracionVentana.protocol("WM_DELETE_WINDOW",self.cerrar_ventana_config)
+            #configuracionVentana.destroy()
+        
+    def cerrar_ventana_config(self):
+        self.boton_config.config(state="normal")
+        self.configuracionVentana.destroy()
+           
     def configurarVentanaConfiguraciones(self,ventana):
         # Row=0 Column 0:
         LableTituloConfig=Label(ventana,text="Configuraciones",font=self.Fuente)

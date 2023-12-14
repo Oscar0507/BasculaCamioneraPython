@@ -147,6 +147,7 @@ class BaseDeDatos:
         except sqlite3.Error as e:
             messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
             self.conn.rollback()
+
     def insertarObra(self,obra,encargado):
         try:
             self.cursor.execute("INSERT INTO Obras(Obra,Encargado) VALUES (?,?)",(obra,encargado))
@@ -155,6 +156,7 @@ class BaseDeDatos:
         except sqlite3.Error as e:
             messagebox.showinfo("Fallo", f"Error de almacenamiento: {str(e)}")
             self.conn.rollback()
+
     def insertarUbicacion(self,ubicacion,region):
         try:
             self.cursor.execute("INSERT INTO Ubicaciones(Ubicacion,Region) VALUES (?,?)",(ubicacion,region))
